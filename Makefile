@@ -9,7 +9,7 @@ CFLAGS = -g # Compiler flags
 RM = rm -f # Command to remove files
 
 TARGET = run # Target executable
-OBJS = run.o generator.o dynamic_array.o # Object files needed for target
+OBJS = run.o generator.o dynamic_array.o bit_array.o # Object files needed for target
 
 ############### Rules ###############
 

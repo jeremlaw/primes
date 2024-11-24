@@ -30,7 +30,8 @@ int main(int argc, char *argv[])
         if ((n % 100) - (n % 10) == 10) {
             suffix = "th";
         }
-        int p = generator(primes, n);
+        //int p = generator(primes, n);
+        int p = sieve(n);
         printf("The %d%s prime is %d\n", n, suffix, p);
     }
     

@@ -1,0 +1,61 @@
+Time and Space Complexity Analysis:
+
+(*) O(log(n log n)) = O(log n + log log n) = (log n), since log n dominates
+
+Brute Force:
+
+    Time: O((n log n)^(3/2))
+    brute()
+        Checks each number up to p(n), the nth prime 
+            For each number, i, check isPrime(i)
+                Loops O(√i) times
+
+        Total work = O(p(n)√(p(n)))
+        Upper bound on p(n) = O(n log n)
+        O(p(n)√(p(n))) = O(n log n √(n log n)) = O((n log n)^3/2)
+    
+    Space: O(1), since no extra memory is stored
+
+Improved Prime Generator:
+
+    Time: O(n^(3/2) log n)
+    generator()
+        Checks each odd number up to p(n), the nth prime
+            For each number, i, prime_factors(i)
+
+            Checks prime factors up to √i, so it loops
+            O(π(√i)) times, where π(x) is number of primes p < i
+
+                Prime Numer Theorem: π(x) = O(x / log x)
+                => O(π(√i)) = O(√i / √(log i))
+
+    Total work = O(p(n) π(√p(n))) = O(n log n √(n log n) / √(log(n log n)))
+    = O(n log n √(n log n) / √(log n)), by (*)
+    = O(n log n √n) = O(n^(3/2) log n)
+    
+    Space: O(n), since first n primes are stored
+
+Sieve of Eratosthenes:
+
+    Time: O(n log n log log n)
+    estimate_sieve_size()
+        Computes sieve_size = n log(n log n), takes O(1) time
+    sieve()
+        Loops sieve_size times
+            For prime p, marks multiples of p from p^2 to sieve_size
+            Inner loop runs sieve_size/p times
+
+        Total work is ∑(sieve_size/p) for all primes p < sieve_size
+        = sieve_size * ∑(1/p)
+
+        Merten's Second Theorem: ∑(1/p) = O(log log sieve_size)
+
+        => Total work = O(sieve_size log log sieve_size)
+
+        (**) O(sieve_size) = O(n log(n log n)) = O(n log n), by (*)
+
+        O(sieve_size log log sieve_size) = O(n log n log log(n log n)), by (**)
+        = O(n log n log log n) by (*)
+    
+    Space: O(n log n)
+    Total space used is sieve_size, O(sieve_size) = O(n log n) by (**)
