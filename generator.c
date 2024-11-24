@@ -2,7 +2,7 @@
  *
  *                     generator.c
  *
- *     This file contains the implementation for prime number
+ *     This file contains the implementations for prime number
  *     generating functions
  *
  **************************************************************/
