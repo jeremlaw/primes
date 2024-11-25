@@ -164,7 +164,7 @@ int generator(Array primes, int n)
  *      Helper function to calculate the estimated sieve size,
  *      which is the number of primes less than the nth prime
  * 
- *      Uses upper bound on nth prime ~ n log(n log n)
+ *      Uses n log(n log n) as an upper bound on nth prime 
  * 
  *      Approximation is worse for small n, so a small
  *      constant approximation is used for small n

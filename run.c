@@ -1,12 +1,25 @@
 #include <stdio.h>
+#include <string.h>
 #include "generator.h"
 
 int main(int argc, char *argv[])
 {
+    printf("\nWelcome to the Prime Number Factory\n");
+    printf("Which would you like to use?\n(1) The brute force generator\n");
+    printf("(2) Our improved version\n(3) The Sieve of Eratosthenes\n");
+    printf("Please choose 1, 2, or 3.\n");
+    int a = 0;
+    scanf("%d", &a);
+    if (a < 1 || a > 3) {
+        fprintf(stderr, "Default: Sieve of Eratosthenes\n");
+    }
+    Array primes = NULL;
+    if (a == 2) {
+        primes = Prime_Array();
+    }
     printf("Give me n, and I will give you the nth prime\n");
     printf("Enter 0 to quit\n");
     int n = 1;
-    Array primes = Prime_Array();
     while (n > 0) {
         scanf("%d", &n);
         if (n == 0) {
@@ -30,11 +43,22 @@ int main(int argc, char *argv[])
         if ((n % 100) - (n % 10) == 10) {
             suffix = "th";
         }
-        //int p = generator(primes, n);
-        int p = sieve(n);
+        int p;
+        if (primes != NULL) {
+            p = generator(primes, n);
+        } else if (a == 1) {
+            p = brute(n);
+        } else if (a == 3) {
+            p = sieve(n);
+        } else {
+            fprintf(stderr, "Default: Sieve of Eratosthenes\n");
+        }
         printf("The %d%s prime is %d\n", n, suffix, p);
     }
     
-    Array_free(primes);
+    if (primes != NULL) {
+        Array_free(primes);
+    }
+
     return 0;
 }
