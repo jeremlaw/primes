@@ -12,6 +12,8 @@
 #include "bit_array.h"
 #include <math.h>
 
+#include <stdio.h>
+
 /********** isPrime ********
  *
  *      Helper for Brute force approach
@@ -23,7 +25,7 @@
  ******************************/
 static bool isPrime(int p)
 {
-    /* 2 and 3 are prime (0 & 1 are never p)*/
+    /* 2 and 3 are prime (p is never 0 or 1)*/
     if (p < 4) {
         return true;
     }
@@ -71,7 +73,7 @@ int brute(int n)
     return p;
 }
 
-/********** isPrime ********
+/********** prime_factors ********
  *
  *      Helper for improved prime generator
  * 
@@ -159,15 +161,15 @@ int generator(Array primes, int n)
     return p;
 }
 
-/********** isPrime ********
+/********** estimate_sieve_size ********
  *
  *      Helper function to calculate the estimated sieve size,
  *      which is the number of primes less than the nth prime
  * 
- *      Uses n log(n log n) as an upper bound on nth prime 
+ *      Uses n (log n + log log n) as a knowd upper bound on 
+ *      nth prime, which holds for n >= 6
  * 
- *      Approximation is worse for small n, so a small
- *      constant approximation is used for small n
+ *      For n < 6, the upper bound is 12 (1 more than the 5th prime)
  * 
  *      Time Complexity: O(1)
  *      
@@ -176,19 +178,20 @@ static size_t estimate_sieve_size(size_t n)
 {
     /* Small constant for small n */
     if (n < 6) {
-        return 15;
+        return 12;
     }
 
     /* Estimated upper bound for nth prime */
-    double estimate = n * log(n * log(n));
+    double ln = log(n);
+    double estimate = n * (ln + log(ln));
     return (size_t)ceil(estimate);
 }
 
-/********** sieve ********
+/********** sieve_of_e ********
  *
  *      Uses Sieve of Eratosthenes to compute nth prime
- *      ~0.14 seconds to compute 1 millionth prime
- *      ~2.1 seconds to compute 10 millionth prime
+ *      ~0.11 seconds to compute 1 millionth prime
+ *      ~1.4 seconds to compute 10 millionth prime
  * 
  *      Method: Estimates nth prime, p(n), as n log(n log n)
  * 
@@ -204,17 +207,24 @@ static size_t estimate_sieve_size(size_t n)
  *      Space Complexity: O(n log n)
  *      
  ******************************/
-int sieve(size_t n)
+int sieve_of_e(size_t n)
 {
+    if (n < 3) {
+        return n + 1;
+    }
+
     size_t sieve_size = estimate_sieve_size(n);
     BitArray *bit_array = BitArray_new(sieve_size);
 
-    size_t prime_count = 0;
+    size_t prime_count = 1;
     int nth_prime = 0;
 
-    for (size_t i = 2; i < sieve_size; i++) {
+    for (size_t i = 2; i < sieve_size; i += 2) {
+        BitArray_set(bit_array, i);
+    }
 
-        /* If i is prime, increas prime count */
+    for (size_t i = 3; i < sieve_size; i += 2) {
+
         if (!BitArray_get(bit_array, i)) {
             prime_count++;
 
@@ -238,3 +248,108 @@ int sieve(size_t n)
     BitArray_free(bit_array);
     return nth_prime;
 }
+
+/* Currently in progress */
+int sieve_of_a(size_t n)
+{
+    if (n <= 0) return -1; // Invalid input
+    
+    // Estimate the upper limit for the nth prime
+    size_t limit = estimate_sieve_size(n) * 1.1; // Add margin
+    BitArray *isPrime = BitArray_new(limit + 1);
+
+    size_t sqrtLimit = (size_t)sqrt((double)limit);
+
+    // Sieve of Atkin
+    for (size_t x = 1; x <= sqrtLimit; x++) {
+        for (size_t y = 1; y <= sqrtLimit; y++) {
+            size_t m = (4 * x * x) + (y * y);
+            if (m <= limit && (m % 12 == 1 || m % 12 == 5)) {
+                BitArray_toggle(isPrime, m);
+            }
+
+            m = (3 * x * x) + (y * y);
+            if (m <= limit && m % 12 == 7) {
+                BitArray_toggle(isPrime, m);
+            }
+
+            m = (3 * x * x) - (y * y);
+            if (x > y && m <= limit && m % 12 == 11) {
+                BitArray_toggle(isPrime, m);
+            }
+        }
+    }
+
+    for (size_t i = 0; i <= limit; i++) {
+        if (BitArray_get(isPrime, i)) {
+            printf("%zu is marked as prime\n", i);
+        }
+    }
+
+    // Eliminate multiples of squares
+    for (size_t i = 5; i <= sqrtLimit; i++) {
+        if (BitArray_get(isPrime, i)) {
+            for (size_t j = i * i; j <= limit; j += i * i) {
+                BitArray_clear(isPrime, j);
+            }
+        }
+    }
+
+    for (size_t i = 0; i <= limit; i++) {
+        if (BitArray_get(isPrime, i)) {
+            printf("%zu is marked as prime\n", i);
+        }
+    }
+
+    // Count primes to find the nth one
+    size_t count = 0;
+    for (size_t i = 2; i <= limit; i++) { // Include 2 and 3 directly
+        if (i == 2 || i == 3 || BitArray_get(isPrime, i)) {
+            count++;
+            printf("Prime #%zu: %zu\n", count, i);
+            if (count == n) {
+                BitArray_free(isPrime);
+                return i; // Found the nth prime
+            }
+        }
+    }
+
+    for (size_t i = 0; i <= limit; i++) {
+        if (BitArray_get(isPrime, i)) {
+            printf("%zu is marked as prime\n", i);
+        }
+    }
+
+    // Cleanup and fallback
+    BitArray_free(isPrime);
+    return -1; // Should not happen if limit is large enough
+}
+
+// // Sieve of Atkin core logic
+    // for (int x = 1; x <= sqrtLimit; x++) {
+    //     for (int y = 1; y <= sqrtLimit; y++) {
+    //         int n = (4 * x * x) + (y * y);
+    //         if (n <= limit && (n % 12 == 1 || n % 12 == 5)) {
+    //             BitArray_toggle(isPrime, n);
+    //         }
+
+    //         n = (3 * x * x) + (y * y);
+    //         if (n <= limit && n % 12 == 7) {
+    //             BitArray_toggle(isPrime, n);
+    //         }
+
+    //         n = (3 * x * x) - (y * y);
+    //         if (x > y && n <= limit && n % 12 == 11) {
+    //             BitArray_toggle(isPrime, n);
+    //         }
+
+    //          // Eliminate multiples of squares
+    //         for (int i = 5; i <= sqrtLimit; i++) {
+    //             if (BitArray_get(isPrime, i)) {
+    //                 for (int j = i * i; j <= limit; j += i * i) {
+    //                     BitArray_clear(isPrime, j);
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }

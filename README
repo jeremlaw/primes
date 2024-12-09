@@ -58,4 +58,4 @@ Sieve of Eratosthenes:
         = O(n log n log log n) by (*)
     
     Space: O(n log n)
-    Total space used is sieve_size, O(sieve_size) = O(n log n) by (**)
+    Total space used is sieve_size, O(sieve_size) = O(n log n), by (**)

@@ -41,21 +41,42 @@ static void resize(BitArray *bit_array)
 void BitArray_set(BitArray *bit_array, size_t i)
 {
     /* Expand bit array i is out of range (should rarely happen) */
+    // if (i == bit_array->size) {
+    //     resize(bit_array);
+    // }
+    // assert(i < bit_array->size);
+
+    /* Set bit to 1 */
+    //bit_array->words[i >> 3] |= (1 << (i & 7));
+    bit_array->words[i / 8] |= (1 << (i % 8));
+}
+
+/* Set the bit at index i to 0 */
+void BitArray_clear(BitArray *bit_array, size_t i)
+{
+    /* Expand bit array i is out of range (should rarely happen) */
     if (i == bit_array->size) {
         resize(bit_array);
     }
     assert(i < bit_array->size);
 
-    /*  */
-    bit_array->words[i / 8] |= (1 << (i % 8));
+    /* Set bit to 0 */
+    bit_array->words[i / 8] &= ~(1 << (i % 8));
 }
 
 /* Check if the bit at index i is set to 1 */
 int BitArray_get(BitArray *bit_array, size_t i)
 {
-    assert(i < bit_array->size);
+    // assert(i < bit_array->size);
     /* Checks if (i % 8)th bit in (i/8)th word is 1 */
+    //return (bit_array->words[i >> 3] >> (i & 7)) & 1;
     return (bit_array->words[i / 8] >> (i % 8)) & 1;
+}
+
+void BitArray_toggle(BitArray *bit_array, size_t index) 
+{
+    assert(index < bit_array->size);
+    bit_array->words[index / 32] ^= (1U << (index % 32));  // XOR to toggle the bit
 }
 
 /* Free the memory allocated for bit array */
